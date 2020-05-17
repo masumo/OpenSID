@@ -7,6 +7,11 @@ class Bidang_persil_model extends CI_Model {
     parent::__construct();
   }
 
+  public function autocomplete($cari='')
+  {
+
+  }
+
   private function search_sql()
   {
     if (isset($_SESSION['cari']))

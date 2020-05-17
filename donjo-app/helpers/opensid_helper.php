@@ -4,7 +4,7 @@ define("VERSION", '20.05-pasca');
 /* Untuk migrasi database. Simpan nilai ini di tabel migrasi untuk menandakan sudah migrasi ke versi ini.
    Versi database = [yyyymmdd][nomor urut dua digit]. Ubah setiap kali mengubah struktur database.
 */
-define('VERSI_DATABASE', '2020050102');
+define('VERSI_DATABASE', '2020050103');
 define("LOKASI_LOGO_DESA", 'desa/logo/');
 define("LOKASI_ARSIP", 'desa/arsip/');
 define("LOKASI_CONFIG_DESA", 'desa/config/');
@@ -827,7 +827,7 @@ function luas($int=0, $satuan="meter")
 	else
 	{
 		$luas['ha'] =0;
-		$luas['meter'] = round($int,2);	
+		$luas['meter'] = round($int,2);
 	}
 	$hasil = ($int!=0)?$luas[$satuan]:null;
 	return $hasil;
@@ -850,7 +850,7 @@ function list_mutasi($mutasi=[])
 
 			echo $hasil;
 		}
-	}		
+	}
 }
 
 function format_mutasi($mutasi=[])
@@ -868,12 +868,12 @@ function format_mutasi($mutasi=[])
 
 		echo $hasil;
 
-	}		
+	}
 }
 
 function ket_mutasi_persil($id=0)
 {
-	if ($id==1) 
+	if ($id==1)
 		$ket = "dari";
 	else
 		$ket = "ke";
