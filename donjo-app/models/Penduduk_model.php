@@ -196,7 +196,7 @@
 
 	protected function filter_sql()
 	{
-		if (isset($_SESSION['filter']))
+		if (!empty($_SESSION['filter']))
 		{
 			$kf = $_SESSION['filter'];
 			$filter_sql = " AND u.status = $kf";
@@ -206,7 +206,7 @@
 
 	protected function status_dasar_sql()
 	{
-		if (isset($_SESSION['status_dasar']))
+		if (!empty($_SESSION['status_dasar']))
 		{
 			$kf = $_SESSION['status_dasar'];
 				$status_dasar = " AND u.status_dasar = $kf";
@@ -303,9 +303,19 @@
 		LEFT JOIN tweb_sakit_menahun j ON u.sakit_menahun_id = j.id
 		LEFT JOIN log_penduduk log ON u.id = log.id_pend and log.id_detail in (2,3,4)
 		LEFT JOIN covid19_pemudik c ON c.id_terdata = u.id
-		LEFT JOIN ref_status_covid rc ON c.status_covid = rc.nama
-		WHERE 1 ";
+		LEFT JOIN ref_status_covid rc ON c.status_covid = rc.nama";
 
+		// TODO: ubah ke query builder
+		// Yg berikut hanya untuk menampilkan peserta bantuan
+		if ($_SESSION['penerima_bantuan'])
+		{
+			$sql .= "
+				LEFT JOIN program_peserta bt ON bt.peserta = u.nik
+				LEFT JOIN program rcb ON bt.program_id = rcb.id
+			";
+		}
+
+		$sql .= " WHERE 1 ";
 		$sql .= $this->search_sql();
 		$sql .= $this->filter_sql();
 		$sql .= $this->status_dasar_sql();
@@ -328,6 +338,10 @@
 			array('id_asuransi', 'u.id_asuransi'),
 			array('status_covid', 'rc.id')
 		);
+		if ($_SESSION['penerima_bantuan'])
+		{
+			$kolom_kode[] = array('penerima_bantuan', 'rcb.id');
+		}
 		foreach ($kolom_kode as $kolom)
 		{
 			$sql .= $this->get_sql_kolom_kode($kolom[0], $kolom[1]);
@@ -346,7 +360,13 @@
 
 	public function list_data($o=0, $offset=0, $limit=500)
 	{
-		$select_sql = "SELECT DISTINCT u.id, u.nik, u.tanggallahir, u.tempatlahir, u.foto, u.status, u.status_dasar, u.id_kk, u.nama, u.nama_ayah, u.nama_ibu, a.dusun, a.rw, a.rt, d.alamat, d.no_kk AS no_kk, u.kk_level, u.tag_id_card, u.created_at, rc.id as status_covid,
+		$select_sql = "SELECT DISTINCT ";
+		if ($_SESSION['penerima_bantuan'])
+		{
+			$select_sql .= 'rcb.id as penerima_bantuan,';
+		}
+
+		$select_sql .= "u.id, u.nik, u.tanggallahir, u.tempatlahir, u.foto, u.status, u.status_dasar, u.id_kk, u.nama, u.nama_ayah, u.nama_ibu, a.dusun, a.rw, a.rt, d.alamat, d.no_kk AS no_kk, u.kk_level, u.tag_id_card, u.created_at, rc.id as status_covid,
 			(CASE when u.status_kawin <> 2
 				then k.nama
 				else
@@ -523,6 +543,7 @@
 		$data['cacat_id'] = $data['cacat_id'] ?: NULL;
 		$data['sakit_menahun_id'] = $data['sakit_menahun_id'] ?: NULL;
 		$data['kk_level'] = $data['kk_level'] ?: 0;
+		$data['email'] = strip_tags($data['email']);
 		if (empty($data['id_asuransi']) or $data['id_asuransi'] == 1)
 			$data['no_asuransi'] = NULL;
 		if (empty($data['warganegara_id'])) $data['warganegara_id'] = 1; //default WNI
@@ -561,7 +582,7 @@
 		$data['nama_ibu'] = nama($data['nama_ibu']);
 		$data['telepon'] = preg_replace('/[^0-9 \-\+\.]/', '', strip_tags($data['telepon']));
 		$data['alamat_sebelumnya'] = strip_tags($data['alamat_sebelumnya']);
-		$data['alamat_sekarang'] = strip_tags($data['alamat_sebelumnya']);
+		$data['alamat_sekarang'] = strip_tags($data['alamat_sekarang']);
 		$data['akta_perkawinan'] = nomor_surat_keputusan($data['akta_perkawinan']);
 		$data['akta_perceraian'] = nomor_surat_keputusan($data['akta_perceraian']);
 
@@ -936,7 +957,7 @@
 
 	public function get_penduduk($id=0)
 	{
-		$sql = "SELECT u.sex as id_sex, u.*, a.dusun, a.rw, a.rt, t.nama AS status, o.nama AS pendidikan_sedang, m.nama as golongan_darah, h.nama as hubungan,
+		$sql = "SELECT u.sex as id_sex, u.*, a.dusun, a.rw, a.rt, t.id AS id_status, t.nama AS status, o.nama AS pendidikan_sedang, m.nama as golongan_darah, h.nama as hubungan,
 			b.nama AS pendidikan_kk, d.no_kk AS no_kk, d.alamat, u.id_cluster as id_cluster, ux.nama as nama_pengubah, ucreate.nama as nama_pendaftar, polis.nama AS asuransi,
 			(CASE when u.status_kawin <> 2
 				then k.nama
@@ -1032,7 +1053,7 @@
 		return $data;
 	}
 
-
+	// TODO: Ubah yg masih menggunakan, spy menggunakan penanganan wilayah di wilayah_model.php
 	public function list_dusun()
 	{
 		$sql = "SELECT * FROM tweb_wil_clusterdesa WHERE rt = '0' AND rw = '0' ";
@@ -1041,6 +1062,7 @@
 		return $data;
 	}
 
+	// TODO: Ubah yg masih menggunakan, spy menggunakan penanganan wilayah di wilayah_model.php
 	public function list_wil()
 	{
 		$sql = "SELECT * FROM tweb_wil_clusterdesa WHERE zoom > '0'";
@@ -1049,6 +1071,7 @@
 		return $data;
 	}
 
+	// TODO: Ubah yg masih menggunakan, spy menggunakan penanganan wilayah di wilayah_model.php
 	public function list_rw($dusun='')
 	{
 		$data = $this->db->
@@ -1060,6 +1083,7 @@
 		return $data;
 	}
 
+	// TODO: Ubah yg masih menggunakan, spy menggunakan penanganan wilayah di wilayah_model.php
 	public function list_rw_all()
 	{
 		$sql = "SELECT * FROM tweb_wil_clusterdesa WHERE rt = '0' AND rw <> '0'";
@@ -1068,6 +1092,7 @@
 		return $data;
 	}
 
+	// TODO: Ubah yg masih menggunakan, spy menggunakan penanganan wilayah di wilayah_model.php
 	public function list_rt($dusun='', $rw='')
 	{
 		$sql = "SELECT * FROM tweb_wil_clusterdesa WHERE rw = ? AND dusun = ? AND rt <> '0'";
@@ -1076,17 +1101,10 @@
 		return $data;
 	}
 
+	// TODO: Ubah yg masih menggunakan, spy menggunakan penanganan wilayah di wilayah_model.php
 	public function list_rt_all()
 	{
 		$sql = "SELECT * FROM tweb_wil_clusterdesa WHERE rt <> '0' AND rw <> '-'";
-		$query = $this->db->query($sql);
-		$data = $query->result_array();
-		return $data;
-	}
-
-	public function list_agama()
-	{
-		$sql = "SELECT * FROM tweb_penduduk_agama WHERE 1";
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
 		return $data;
@@ -1119,6 +1137,7 @@
 		return $data;
 	}
 
+	// Hapus jika tdk ada modul yg gunakan, untuk selanjutnya penanganan wilayah terdapat pd wilayah_model.php
 	public function list_pendidikan()
 	{
 		$sql = "SELECT * FROM tweb_penduduk_pendidikan WHERE 1";
@@ -1144,6 +1163,7 @@
 		return $data;
 	}
 
+	// Hapus jika tdk ada modul yg gunakan, untuk selanjutnya penanganan wilayah terdapat pd wilayah_model.php
 	public function list_pendidikan_kk()
 	{
 		$sql = "SELECT * FROM tweb_penduduk_pendidikan_kk WHERE 1";
@@ -1316,11 +1336,13 @@
 				case 10: $sql = "SELECT * FROM tweb_sakit_menahun WHERE id = ?";break;
 				case 13: $sql = "SELECT * FROM tweb_penduduk_umur WHERE id = ?";break;
 				case 14: $sql = "SELECT * FROM tweb_penduduk_pendidikan WHERE id = ?";break;
+				case 15: $sql = "SELECT * FROM tweb_penduduk_umur WHERE id = ?";break;
 				case 16: $sql = "SELECT * FROM tweb_cara_kb WHERE id = ?";break;
 				case 17: $sql = "SELECT 'ADA AKTA KELAHIRAN' AS nama"; break;
 				case 18: $sql = "SELECT * FROM tweb_status_ktp WHERE id = ?"; break;
 				case 19: $sql = "SELECT * FROM tweb_penduduk_asuransi WHERE id = ?"; break;
 				case 'covid': $sql = "SELECT * FROM ref_status_covid WHERE id = ?"; break;
+				case 'bantuan_penduduk': $sql = "SELECT * FROM program WHERE id = ?"; break;
 			}
 			$query = $this->db->query($sql, $nomor);
 			$judul = $query->row_array();
@@ -1362,7 +1384,7 @@
 			$data[$i]['hidden'] = false;
 
 			// jika dokumen berelasi dengan dokumen kepala kk
-			if (isset($data[$i]['id_parent'])) 
+			if (isset($data[$i]['id_parent']))
 				$data[$i]['hidden'] = true;
 		}
 		return $data;
