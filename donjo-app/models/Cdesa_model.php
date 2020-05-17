@@ -45,11 +45,9 @@ class Cdesa_model extends CI_Model {
 	{
 		$sql = " FROM cdesa c
 				LEFT JOIN mutasi_cdesa m ON m.id_cdesa_masuk = c.id
-				LEFT JOIN persil p ON p.id = m.id_persil	
+				LEFT JOIN persil p ON p.id = m.id_persil
 				LEFT JOIN cdesa_penduduk cu ON cu.id_cdesa = c.id
-				LEFT JOIN tweb_penduduk u ON u.id = cu.id_pend
-				LEFT JOIN tweb_wil_clusterdesa w ON w.id = p.id_wilayah
-				LEFT JOIN ref_persil_kelas k ON k.id = p.kelas
+				JOIN tweb_penduduk u ON u.id = cu.id_pend
 				WHERE 1  ";
 		$sql .= $this->search_sql();
 		return $sql;
@@ -57,7 +55,7 @@ class Cdesa_model extends CI_Model {
 
 	public function paging_c_desa($kat='', $mana=0, $p=1)
 	{
-		
+
 		$sql = "SELECT COUNT(*) AS jml ".$this->main_sql_c_desa();
 		$query = $this->db->query($sql);
 		$row = $query->row_array();
@@ -74,14 +72,11 @@ class Cdesa_model extends CI_Model {
 
 	public function list_c_desa($kat='', $mana=0, $offset, $per_page)
 	{
-		$data = [];		
-		$sql = "SELECT c.id, c.*, m.id_cdesa_masuk, k.kode, u.nik AS nik, cu.id_pend, p.id_wilayah, COUNT(m.id_cdesa_masuk) AS jumlah, u.nama as namapemilik,
-			p.`lokasi`, w.rt, w.rw, w.dusun, c.created_at as tanggal_daftar,
-			SUM(IF(k.kode LIke '%S%', m.luas, 0)) as basah,
-			SUM(IF(k.kode LIke '%D%', m.luas, 0)) as kering
+		$data = [];
+		$sql = "SELECT c.id, c.*, m.id_cdesa_masuk, u.nik AS nik,  COUNT(m.id_cdesa_masuk) AS jumlah, u.nama as namapemilik, c.created_at as tanggal_daftar
 		";
 		$sql .= $this->main_sql_c_desa();
-		$sql .= " GROUP BY c.nomor ";
+		$sql .= " GROUP BY c.id, u.id";
 		$sql .= " LIMIT ".$offset.",".$per_page;
 		$query = $this->db->query($sql);
 		$data = $query->result_array();
@@ -160,10 +155,10 @@ class Cdesa_model extends CI_Model {
 		if ($this->input->post('jenis_pemilik') == 1)
 		{
 			$this->simpan_pemilik($id_cdesa, $this->input->post('id_pend'));
-		} 
+		}
 		else
 		{
-			$this->hapus_pemilik($id_cdesa);			
+			$this->hapus_pemilik($id_cdesa);
 		}
 		return $id_cdesa;
 	}
@@ -304,7 +299,7 @@ class Cdesa_model extends CI_Model {
 	public function get_c_cetak($id, $tipe='')
 	{
 		$data = false;
-		$strSQL = "SELECT p.`id` as id, u.`nik` as nik, y.`c_desa`, p.`jenis_pemilik` as jenis_pemilik, p.`nama` as nopersil, p.id_pend, p.`id_c_desa`, p.`persil_jenis_id`, kelas, x.`kode`, p.`id_clusterdesa`, p.`luas`, 
+		$strSQL = "SELECT p.`id` as id, u.`nik` as nik, y.`c_desa`, p.`jenis_pemilik` as jenis_pemilik, p.`nama` as nopersil, p.id_pend, p.`id_c_desa`, p.`persil_jenis_id`, kelas, x.`kode`, p.`id_clusterdesa`, p.`luas`,
 			p.`kelas`, p.`pajak`,  p.pemilik_luar,
 			p.`no_sppt_pbb`, p.`lokasi`, p.`persil_peruntukan_id`, u.nama as namapemilik, w.rt, w.rw, w.dusun,alamat_luar, m.jenis_mutasi, m.tanggalmutasi, rm.nama as sebabmutasi, m.luasmutasi, m.no_c_desa, m.keterangan
 			FROM `data_persil` p
