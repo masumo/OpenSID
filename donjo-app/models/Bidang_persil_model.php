@@ -55,7 +55,7 @@ class Bidang_persil_model extends CI_Model {
   {
     $this->main_sql();
     $data = $this->db
-      ->select('m.*, p.nomor, rk.kode as kelas_tanah, dp.nama as peruntukan, dj.nama as jenis_persil')
+      ->select('m.*, c.nomor as no_cdesa, p.nomor, rk.kode as kelas_tanah, dp.nama as peruntukan, dj.nama as jenis_persil')
       ->select('CONCAT("RT ", rt, " / RW ", rw, " - ", dusun) as lokasi, p.lokasi as alamat')
       ->order_by('p.nomor, m.no_bidang_persil')
       ->get()

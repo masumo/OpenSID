@@ -99,6 +99,7 @@
 														<tr>
 															<th>No</th>
 															<th>C-Desa</th>
+															<th>No. Bidang Persil</th>
 															<th>Luas (M2)</th>
 															<th>Tipe Persil</th>
 															<th>Peruntukan</th>
@@ -113,12 +114,13 @@
 															<tr>
 																<td class="text-center"><?= $nomer?></td>
 																<td><a href="<?= site_url("cdesa/rincian/".$item["id_cdesa_masuk"])?>"><?= $item['cdesa_masuk']?></a></td>
+																<td><?= $item['no_bidang_persil']?></td>
 																<td><?= $item['luas']?></td>
 																<td><?= $item['jenis_persil']?></td>
 																<td><?= $item['peruntukan']?></td>
 																<td><?= $item['no_objek_pajak']?></td>
 																<td><?= $item['no_sppt_pbb']?></td>
-																<td><?= $item['keterangan']?></td>																	
+																<td><?= $item['keterangan']?></td>
 															</tr>
 														<?php endforeach; ?>
 													</tbody>
