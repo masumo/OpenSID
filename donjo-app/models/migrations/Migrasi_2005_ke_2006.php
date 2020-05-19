@@ -5,6 +5,8 @@ class Migrasi_2005_ke_2006 extends CI_model {
 	{
 		$this->ubah_data_persil();
 		$this->grup_akses_covid19();
+		$this->load->model('migrations/migrasi_2004_ke_2005');
+		$this->migrasi_2004_ke_2005->up(); // untuk yang sudah terlanjur mengkosongkan DB sebelum kosongkan_db diperbaiki
 
 		// Ubah nama kode status penduduk
 		$this->db->where('id', 2)
