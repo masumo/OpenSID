@@ -371,4 +371,31 @@ class Kelompok_model extends MY_Model {
 
 		return $data;
 	}
+
+	public function list_jabatan()
+	{
+		$jabatan = array("KETUA", "WAKIL KETUA", "SEKRETARIS", "BENDAHARA", "ANGGOTA");
+		return $jabatan;
+	}
+
+	public function ubah_jabatan($id_kelompok,$id_penduduk,$jabatan)
+	{
+		// jika ada orang lain yang sudah jabat KETUA ubah jabatan menjadi anggota
+		// update ketua kelompok di tabel kelompok
+		if($jabatan!=NULL && $jabatan=='KETUA')
+		{
+			$data['jabatan'] = 'ANGGOTA';
+			$data['no_sk_jabatan'] = '';
+			$this->db->where('id_kelompok', $id_kelompok);
+			$this->db->update('kelompok_anggota', $data);
+
+			$nik['id_ketua'] = $id_penduduk;
+			$this->db->where('id', $id_kelompok);
+			$outp = $this->db->update('kelompok', $nik);
+		}else
+		{
+			// jika yang diubah adalah jabatan KETUA maka kosongkan ketua kelompok di table kelompok
+				
+		}
+	}
 }

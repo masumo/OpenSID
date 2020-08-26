@@ -80,9 +80,14 @@
 									</div>
 								</div>
 								<div class="form-group">
-									<label  class="col-sm-3 control-label" for="jabatan">Jabatan</label>
+									<label class="col-sm-3 control-label" for="jabatan">Jabatan</label>
 									<div class="col-sm-5">
-										<input  id="jabatan" class="form-control input-sm" type="text" placeholder="Jabatan" name="jabatan" value="<?=$pend['jabatan']; ?>">
+										<select class="form-control input-sm"  id="jabatan" name="jabatan">
+											<option option value="">-- Silakan Pilih Jabatan --</option>
+											<?php foreach ($list_jabatan as $data): ?>
+												<option value="<?= $data?>"><?= $data?></option>
+											<?php endforeach;?>
+										</select>
 									</div>
 								</div>
 								<div class="form-group">
